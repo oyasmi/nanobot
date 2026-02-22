@@ -16,6 +16,13 @@ USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_7_2) AppleWebKit/537.36"
 MAX_REDIRECTS = 5  # Limit redirects to prevent DoS attacks
 
 
+def _get_proxy() -> str | None:
+    """Get HTTP proxy from environment variables."""
+    proxy = (os.environ.get("HTTPS_PROXY")
+             or os.environ.get("HTTP_PROXY"))
+    return proxy if proxy else None
+
+
 def _strip_tags(text: str) -> str:
     """Remove HTML tags and decode entities."""
     text = re.sub(r'<script[\s\S]*?</script>', '', text, flags=re.I)
@@ -67,7 +74,7 @@ class WebSearchTool(Tool):
         
         try:
             n = min(max(count or self.max_results, 1), 10)
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(proxy=_get_proxy()) as client:
                 r = await client.get(
                     "https://api.search.brave.com/res/v1/web/search",
                     params={"q": query, "count": n},
@@ -122,7 +129,8 @@ class WebFetchTool(Tool):
             async with httpx.AsyncClient(
                 follow_redirects=True,
                 max_redirects=MAX_REDIRECTS,
-                timeout=30.0
+                timeout=30.0,
+                proxy=_get_proxy()
             ) as client:
                 r = await client.get(url, headers={"User-Agent": USER_AGENT})
                 r.raise_for_status()
