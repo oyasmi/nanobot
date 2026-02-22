@@ -51,6 +51,18 @@ class DingTalkConfig(Base):
     allow_from: list[str] = Field(default_factory=list)  # Allowed staff_ids
 
 
+class DingTalkCardConfig(Base):
+    """DingTalk AI Card channel configuration using Stream mode."""
+
+    enabled: bool = False
+    client_id: str = ""       # AppKey
+    client_secret: str = ""   # AppSecret
+    robot_code: str = ""      # 机器人编码（群聊投递时需要）
+    card_template_id: str = ""     # AI 卡片模板 ID
+    card_template_key: str = "content"  # 模板中正文变量名
+    allow_from: list[str] = Field(default_factory=list)  # Allowed staff_ids
+
+
 class DiscordConfig(Base):
     """Discord channel configuration."""
 
@@ -174,6 +186,7 @@ class ChannelsConfig(Base):
     feishu: FeishuConfig = Field(default_factory=FeishuConfig)
     mochat: MochatConfig = Field(default_factory=MochatConfig)
     dingtalk: DingTalkConfig = Field(default_factory=DingTalkConfig)
+    dingtalk_card: DingTalkCardConfig = Field(default_factory=DingTalkCardConfig)
     email: EmailConfig = Field(default_factory=EmailConfig)
     slack: SlackConfig = Field(default_factory=SlackConfig)
     qq: QQConfig = Field(default_factory=QQConfig)

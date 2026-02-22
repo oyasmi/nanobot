@@ -103,6 +103,17 @@ class ChannelManager:
             except ImportError as e:
                 logger.warning("DingTalk channel not available: {}", e)
 
+        # DingTalk Card channel (AI Card streaming)
+        if self.config.channels.dingtalk_card.enabled:
+            try:
+                from nanobot.channels.dingtalk_card import DingTalkCardChannel
+                self.channels["dingtalk_card"] = DingTalkCardChannel(
+                    self.config.channels.dingtalk_card, self.bus
+                )
+                logger.info("DingTalk Card channel enabled")
+            except ImportError as e:
+                logger.warning("DingTalk Card channel not available: {}", e)
+
         # Email channel
         if self.config.channels.email.enabled:
             try:
