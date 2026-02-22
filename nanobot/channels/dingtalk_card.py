@@ -132,7 +132,7 @@ class DingTalkCardChannel(BaseChannel):
         # Active AI cards: chat_id → AICard
         self._active_cards: dict[str, AICard] = {}
 
-        # Conversation metadata cache: chat_id → {conversation_id, conversation_type}
+        # Conversation metadata cache: chat_id → {conversation_id, conversation_type, sender_id}
         self._conv_meta: dict[str, dict[str, str]] = {}
 
         # Background task ref-set (prevent GC)
@@ -270,14 +270,10 @@ class DingTalkCardChannel(BaseChannel):
                 },
             )
             resp.raise_for_status()
-            logger.debug(
-                "DingTalk Card created: {} resp={}",
-                instance_id, resp.text[:200],
-            )
         except httpx.HTTPStatusError as e:
             logger.error(
                 "DingTalk Card: create failed ({}): {}",
-                e.response.status_code, e.response.text[:300],
+                e.response.status_code, e.response.text,
             )
             return None
         except Exception as e:
@@ -328,15 +324,11 @@ class DingTalkCardChannel(BaseChannel):
             card.content = content
             if finalize:
                 card.finished = True
-            logger.debug(
-                "DingTalk Card stream OK: id={} len={} finalize={}",
-                card.instance_id, len(content), finalize,
-            )
             return True
         except httpx.HTTPStatusError as e:
             logger.error(
                 "DingTalk Card: streaming failed ({}): {}",
-                e.response.status_code, e.response.text[:300],
+                e.response.status_code, e.response.text,
             )
             return False
         except Exception as e:
