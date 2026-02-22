@@ -126,14 +126,31 @@ class WebFetchTool(Tool):
             return json.dumps({"error": f"URL validation failed: {error_msg}", "url": url}, ensure_ascii=False)
 
         try:
+            # Inject cached cookies if available
+            from nanobot.utils.cookie_manager import get_cookies_for_url, update_from_response
+            headers = {"User-Agent": USER_AGENT}
+            cookie_pairs = get_cookies_for_url(url)
+            if cookie_pairs:
+                headers["Cookie"] = "; ".join(f"{k}={v}" for k, v in cookie_pairs.items())
+
             async with httpx.AsyncClient(
                 follow_redirects=True,
                 max_redirects=MAX_REDIRECTS,
-                timeout=30.0,
-                proxy=_get_proxy()
+                timeout=30.0
             ) as client:
-                r = await client.get(url, headers={"User-Agent": USER_AGENT})
+                r = await client.get(url, headers=headers)
                 r.raise_for_status()
+
+            # Update cache with Set-Cookie from response
+            set_cookie_hdrs = r.headers.get_list("set-cookie") if hasattr(r.headers, 'get_list') else []
+            if not set_cookie_hdrs:
+                # httpx Headers: collect all set-cookie values
+                set_cookie_hdrs = [v for k, v in r.headers.multi_items() if k.lower() == "set-cookie"]
+            if set_cookie_hdrs:
+                try:
+                    update_from_response(url, set_cookie_hdrs)
+                except Exception:
+                    pass  # Don't fail the request if cookie update fails
             
             ctype = r.headers.get("content-type", "")
             

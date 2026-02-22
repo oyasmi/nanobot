@@ -791,6 +791,12 @@ MCP tools are automatically discovered and registered on startup. The LLM can us
 | `tools.restrictToWorkspace` | `false` | When `true`, restricts **all** agent tools (shell, file read/write/edit, list) to the workspace directory. Prevents path traversal and out-of-scope access. |
 | `channels.*.allowFrom` | `[]` (allow all) | Whitelist of user IDs. Empty = allow everyone; non-empty = only listed users can interact. |
 
+### Web Tools
+
+| Feature | Description |
+|---------|-------------|
+| **HTTP Proxy** | `web_search` supports HTTP proxy via `HTTPS_PROXY` / `HTTP_PROXY` environment variables. |
+| **Cookie Cache** | `web_fetch` can carry browser cookies for authenticated access. Run `nanobot cookie-cache` to read and encrypt cookies from Chrome/Edge, then `web_fetch` will automatically include matching cookies in requests. |
 
 ## CLI Reference
 
@@ -806,6 +812,7 @@ MCP tools are automatically discovered and registered on startup. The LLM can us
 | `nanobot provider login openai-codex` | OAuth login for providers |
 | `nanobot channels login` | Link WhatsApp (scan QR) |
 | `nanobot channels status` | Show channel status |
+| `nanobot cookie-cache` | Cache browser cookies for authenticated web access |
 
 Interactive mode exits: `exit`, `quit`, `/exit`, `/quit`, `:q`, or `Ctrl+D`.
 

@@ -1089,5 +1089,50 @@ def _login_github_copilot() -> None:
         raise typer.Exit(1)
 
 
+# ============================================================================
+# Cookie Cache
+# ============================================================================
+
+
+@app.command("cookie-cache")
+def cookie_cache():
+    """Cache browser cookies for authenticated web access."""
+    from nanobot.utils.cookie_manager import (
+        detect_browsers, load_from_browser, save_cache,
+    )
+
+    browsers = detect_browsers()
+    if not browsers:
+        console.print("[red]未检测到 Chrome 或 Edge 浏览器[/red]")
+        raise typer.Exit(1)
+
+    # Single browser: use directly; multiple: let user choose
+    if len(browsers) == 1:
+        chosen = browsers[0]
+        console.print(f"检测到浏览器: [cyan]{chosen['name']}[/cyan]")
+    else:
+        console.print("检测到以下浏览器:")
+        for i, b in enumerate(browsers, 1):
+            console.print(f"  [cyan]{i}[/cyan]. {b['name']}")
+        idx = typer.prompt("请选择浏览器", type=int, default=1)
+        if idx < 1 or idx > len(browsers):
+            console.print("[red]无效选择[/red]")
+            raise typer.Exit(1)
+        chosen = browsers[idx - 1]
+
+    console.print(f"正在读取 {chosen['name']} 的 Cookie...")
+    try:
+        cookies = load_from_browser(chosen["key"])
+    except ImportError as e:
+        console.print(f"[red]{e}[/red]")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[red]读取 Cookie 失败: {e}[/red]")
+        raise typer.Exit(1)
+
+    save_cache(cookies)
+    console.print(f"[green]✓[/green] 已缓存 {len(cookies)} 个 Cookie 到 ~/.nanobot/cookie_cache")
+
+
 if __name__ == "__main__":
     app()
