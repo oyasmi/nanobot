@@ -18,8 +18,8 @@ MAX_REDIRECTS = 5  # Limit redirects to prevent DoS attacks
 
 def _get_proxy() -> str | None:
     """Get HTTP proxy from environment variables."""
-    proxy = (os.environ.get("HTTPS_PROXY")
-             or os.environ.get("HTTP_PROXY"))
+    proxy = (os.environ.get("BRAVE_HTTPS_PROXY")
+             or os.environ.get("HTTPS_PROXY"))
     return proxy if proxy else None
 
 
