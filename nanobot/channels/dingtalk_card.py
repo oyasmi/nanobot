@@ -74,12 +74,21 @@ class _CardDingTalkHandler(CallbackHandler):
             content = ""
             if chatbot_msg.text:
                 content = chatbot_msg.text.content.strip()
+            if not content and chatbot_msg.rich_text_content:
+                # richText: 用户发送了带格式(列表/图文混排)的消息
+                parts = []
+                for item in chatbot_msg.rich_text_content.rich_text_list or []:
+                    if isinstance(item, dict) and "text" in item:
+                        parts.append(item["text"])
+                content = "\n".join(parts).strip()
             if not content:
                 content = message.data.get("text", {}).get("content", "").strip()
 
             if not content:
                 logger.warning(
-                    "DingTalk Card: empty message (type={})", chatbot_msg.message_type,
+                    "DingTalk Card: empty message (type={}, keys={})",
+                    chatbot_msg.message_type,
+                    list(message.data.keys()),
                 )
                 return AckMessage.STATUS_OK, "OK"
 
