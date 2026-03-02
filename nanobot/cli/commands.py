@@ -284,6 +284,7 @@ def gateway(
         memory_window=config.agents.defaults.memory_window,
         reasoning_effort=config.agents.defaults.reasoning_effort,
         brave_api_key=config.tools.web.search.api_key or None,
+        web_proxy=config.tools.web.proxy or None,
         exec_config=config.tools.exec,
         cron_service=cron,
         restrict_to_workspace=config.tools.restrict_to_workspace,
@@ -295,18 +296,30 @@ def gateway(
     # Set cron callback (needs agent)
     async def on_cron_job(job: CronJob) -> str | None:
         """Execute a cron job through the agent."""
+        from nanobot.agent.tools.message import MessageTool
+        reminder_note = (
+            "[Scheduled Task] Timer finished.\n\n"
+            f"Task '{job.name}' has been triggered.\n"
+            f"Scheduled instruction: {job.payload.message}"
+        )
+
         response = await agent.process_direct(
-            job.payload.message,
+            reminder_note,
             session_key=f"cron:{job.id}",
             channel=job.payload.channel or "cli",
             chat_id=job.payload.to or "direct",
         )
-        if job.payload.deliver and job.payload.to:
+
+        message_tool = agent.tools.get("message")
+        if isinstance(message_tool, MessageTool) and message_tool._sent_in_turn:
+            return response
+
+        if job.payload.deliver and job.payload.to and response:
             from nanobot.bus.events import OutboundMessage
             await bus.publish_outbound(OutboundMessage(
                 channel=job.payload.channel or "cli",
                 chat_id=job.payload.to,
-                content=response or ""
+                content=response
             ))
         return response
     cron.on_job = on_cron_job
@@ -444,6 +457,7 @@ def agent(
         memory_window=config.agents.defaults.memory_window,
         reasoning_effort=config.agents.defaults.reasoning_effort,
         brave_api_key=config.tools.web.search.api_key or None,
+        web_proxy=config.tools.web.proxy or None,
         exec_config=config.tools.exec,
         cron_service=cron,
         restrict_to_workspace=config.tools.restrict_to_workspace,
@@ -938,6 +952,7 @@ def cron_run(
         memory_window=config.agents.defaults.memory_window,
         reasoning_effort=config.agents.defaults.reasoning_effort,
         brave_api_key=config.tools.web.search.api_key or None,
+        web_proxy=config.tools.web.proxy or None,
         exec_config=config.tools.exec,
         restrict_to_workspace=config.tools.restrict_to_workspace,
         mcp_servers=config.tools.mcp_servers,

@@ -183,6 +183,7 @@ class SlackConfig(Base):
     user_token_read_only: bool = True
     reply_in_thread: bool = True
     react_emoji: str = "eyes"
+    allow_from: list[str] = Field(default_factory=list)  # Allowed Slack user IDs (sender-level)
     group_policy: str = "mention"  # "mention", "open", "allowlist"
     group_allow_from: list[str] = Field(default_factory=list)  # Allowed channel IDs if allowlist
     dm: SlackDMConfig = Field(default_factory=SlackDMConfig)
@@ -303,6 +304,7 @@ class WebSearchConfig(Base):
 class WebToolsConfig(Base):
     """Web tools configuration."""
 
+    proxy: str | None = None  # HTTP/SOCKS5 proxy URL, e.g. "http://127.0.0.1:7890" or "socks5://127.0.0.1:1080"
     search: WebSearchConfig = Field(default_factory=WebSearchConfig)
 
 
